@@ -64,10 +64,13 @@ function Board({onClick, squares}) {
 
 function Game() {
   const [squares, setSquares] = useLocalStorageState('squares', Array(9).fill(null))
+  const [history, setHistory] = useLocalStorageState('squares:history', [Array(9).fill(null)])
+  const [current, setCurrent] = React.useState(0)
 
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
   const status = calculateStatus(winner, squares, nextValue)
+  const moves = calculateMoves(current)
 
   function selectSquare(square) {
     console.log(square);
@@ -78,23 +81,41 @@ function Game() {
     const squaresCopy = [...squares]
     squaresCopy[square] = nextValue
     setSquares(squaresCopy)
+    
+    const historyCopy = [...history]
+    historyCopy[current] = squaresCopy
+    setHistory(historyCopy)
+    setCurrent(current+1)
   }
 
   function restart() {
     setSquares(Array(9).fill(null))
+    setCurrent(0)
+    setHistory([Array(9).fill(null)])
   }
 
   return (
     <div className="game">
       <div className="game-board">
-      <div className="status">{status}</div>
-      <Board onClick={selectSquare} squares={squares} />
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
+        <Board onClick={selectSquare} squares={squares} />
+        <button className="restart" onClick={restart}>
+          restart
+        </button>
+      </div>
+      <div className="game-info">
+        <div>{status}</div>
+        <ol>{moves}</ol>
       </div>
     </div>
   )
+}
+
+function calculateMoves(current) {
+  const movesArray = []
+  for(let i = 0; i < current; i++) {
+    movesArray.push(<li key={i}><button onClick={() => console.log(i)}>Go to move {i}</button></li>)
+  }
+  return movesArray
 }
 
 function calculateStatus(winner, squares, nextValue) {
