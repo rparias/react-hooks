@@ -70,7 +70,7 @@ function Game() {
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
   const status = calculateStatus(winner, squares, nextValue)
-  const moves = calculateMoves(current)
+  const moves = calculateMoves(current, history, setSquares)
 
   function selectSquare(square) {
     console.log(square);
@@ -110,10 +110,10 @@ function Game() {
   )
 }
 
-function calculateMoves(current) {
+function calculateMoves(current, history, setSquares) {
   const movesArray = []
   for(let i = 0; i < current; i++) {
-    movesArray.push(<li key={i}><button onClick={() => console.log(i)}>Go to move {i}</button></li>)
+    movesArray.push(<li key={i}><button onClick={() => setSquares(history[i])}>Go to move {i}</button></li>)
   }
   return movesArray
 }
