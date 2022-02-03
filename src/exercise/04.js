@@ -63,41 +63,48 @@ function Board({onClick, squares}) {
 }
 
 function Game() {
-  const [squares, setSquares] = useLocalStorageState('squares', Array(9).fill(null))
   const [history, setHistory] = useLocalStorageState('squares:history', [Array(9).fill(null)])
-  const [current, setCurrent] = React.useState(0)
-
-  const nextValue = calculateNextValue(squares)
-  const winner = calculateWinner(squares)
-  const status = calculateStatus(winner, squares, nextValue)
-  const moves = calculateMoves(current, history, setSquares)
+  const [current, setCurrent] = useLocalStorageState('squares:step', 0)
+  
+  const currentSquares = history[current]
+  const winner = calculateWinner(currentSquares)
+  const nextValue = calculateNextValue(currentSquares)
+  const status = calculateStatus(winner, currentSquares, nextValue)
 
   function selectSquare(square) {
-    console.log(square);
-    if(winner || squares[square]) {
+    if(winner || currentSquares[square]) {
       return
     }
 
-    const squaresCopy = [...squares]
-    squaresCopy[square] = nextValue
-    setSquares(squaresCopy)
+    const historyCopy = history.slice(0, current + 1)
+    const squaresCopy = [...currentSquares]
     
-    const historyCopy = [...history]
-    historyCopy[current] = squaresCopy
-    setHistory(historyCopy)
-    setCurrent(current+1)
+    squaresCopy[square] = nextValue
+    setHistory([...historyCopy, squaresCopy])
+    setCurrent(historyCopy.length)
   }
 
   function restart() {
-    setSquares(Array(9).fill(null))
     setCurrent(0)
     setHistory([Array(9).fill(null)])
   }
 
+  const moves = history.map((stepSquares, step) => {
+    const description = step ? `Go to move #${step}` : 'Go to game start'
+    const isCurrentStep = step === current
+    return(
+      <li key={step}>
+        <button disabled={isCurrentStep} onClick={() => setCurrent(step)}>
+          {description} {isCurrentStep ? '(current)' : null}
+        </button>
+      </li>
+    )
+  })
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board onClick={selectSquare} squares={squares} />
+        <Board onClick={selectSquare} squares={currentSquares} />
         <button className="restart" onClick={restart}>
           restart
         </button>
@@ -108,14 +115,6 @@ function Game() {
       </div>
     </div>
   )
-}
-
-function calculateMoves(current, history, setSquares) {
-  const movesArray = []
-  for(let i = 0; i < current; i++) {
-    movesArray.push(<li key={i}><button onClick={() => setSquares(history[i])}>Go to move {i}</button></li>)
-  }
-  return movesArray
 }
 
 function calculateStatus(winner, squares, nextValue) {
